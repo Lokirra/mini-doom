@@ -19,6 +19,7 @@ canvas{position:fixed;left:0;top:0;width:100vw;width:100%;height:100vh;height:10
 .joy{position:fixed;width:100px;height:100px;margin:-50px 0 0 -50px;border:2px solid rgba(255,255,255,.4);border-radius:50%;display:none;pointer-events:none}
 .joy i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px;border-radius:50%;background:rgba(255,255,255,.4)}
 #msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:calc(24px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(24px + env(safe-area-inset-left,0px));text-align:center;background:var(--pn);color:var(--fg)}
+#dg{position:fixed;left:calc(env(safe-area-inset-left,0px) + 8px);max-width:30vw;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);font:10px/1.3 system-ui,sans-serif;opacity:.75;margin:0;text-align:left;pointer-events:none}#dg:empty{display:none}
 #msg h1{font-size:44px;margin:0;color:var(--acc);letter-spacing:3px;font-weight:400}
 #msg p{margin:0;max-width:330px;line-height:1.45;font-family:system-ui,sans-serif;font-size:15px}
 #msg button{font:inherit;font-size:22px;padding:12px 38px;border:0;border-radius:6px;background:var(--acc);color:#fff}
@@ -36,7 +37,7 @@ canvas{position:fixed;left:0;top:0;width:100vw;width:100%;height:100vh;height:10
 <button class="b" id="dash">DASH</button>
 <button class="b" id="fire">FUEGO</button>
 <button class="b" id="pz">II</button>
-<div id="msg"><h1 id="mt"></h1><p id="mp"></p><div id="cw"><div id="chs"></div><p id="cd"></p></div><div id="set"></div><button id="mb"></button><button class="s2" id="mb2">AJUSTES</button></div>
+<div id="msg"><h1 id="mt"></h1><p id="mp"></p><div id="cw"><div id="chs"></div><p id="cd"></p></div><div id="set"></div><button id="mb"></button><button class="s2" id="mb2">AJUSTES</button><p id="dg"></p></div>
 <script>/* Three.js r128 + GLTFLoader + SkeletonUtils (MIT) */
 /* Three.js r128 + GLTFLoader + SkeletonUtils (MIT) */
 /**
@@ -4467,14 +4468,16 @@ function cast(ox,oy,rx,ry){
 const hit=(x,y,r)=>M[(y-r)|0][(x-r)|0]||M[(y-r)|0][(x+r)|0]||M[(y+r)|0][(x-r)|0]||M[(y+r)|0][(x+r)|0];
 const dirs=()=>{dX=Math.cos(ang);dY=Math.sin(ang);pX=-dY*fv;pY=dX*fv};
 /* pantalla: FOV vertical que se adapta a la relación de aspecto (horizontal entre 88 y 112 grados) y margenes seguros */
-const D2R=Math.PI/180,SAe=$('sa');let SA={t:0,r:0,b:0,l:0},BF=74,LW=0,LH=0;
+const VER='v11',APK=!!window.Capacitor||/;\s*wv\)/.test(navigator.userAgent),D2R=Math.PI/180,SAe=$('sa');let SA={t:0,r:0,b:0,l:0},BF=74,LW=0,LH=0;
 function readSA(){try{const c=getComputedStyle(SAe);SA={t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0}}catch(e){}}
 function fovFor(a){const hf=Math.max(88,Math.min(112,2*Math.atan(Math.tan(37*D2R)*a)/D2R));return Math.min(110,2*Math.atan(Math.tan(hf/2*D2R)/a)/D2R)}
 function wfovFor(a){return Math.min(100,Math.max(58,2*Math.atan(Math.tan(35*D2R)/a)/D2R))}
-function resize(){const w=innerWidth,h=innerHeight;if(!w||!h)return;LW=w;LH=h;readSA();const pr=[.5,.75,1,1.5][ST.rs]*Math.min(devicePixelRatio||1,2),a=w/h;renderer.setPixelRatio(pr);renderer.setSize(w,h,false);
+function diag(){const e=$('dg');if(!e)return;if(!APK){e.textContent='';return}const iw=Math.max(innerWidth,innerHeight),ih=Math.min(innerWidth,innerHeight),sw=Math.max(screen.width,screen.height),sh=Math.min(screen.width,screen.height),ok=Math.abs(iw-sw)<=3&&Math.abs(ih-sh)<=3;
+ e.textContent='APK '+VER+' · '+(ok?'pantalla completa OK ('+iw+'x'+ih+')':'AVISO: ocupa '+iw+'x'+ih+' de '+sw+'x'+sh+' (APK viejo o sin apk.yml nuevo)')}
+function resize(){const w=innerWidth,h=innerHeight;if(!w||!h)return;LW=w;LH=h;readSA();diag();const pr=[.5,.75,1,1.5][ST.rs]*Math.min(devicePixelRatio||1,2),a=w/h;renderer.setPixelRatio(pr);renderer.setSize(w,h,false);
  BF=fovFor(a);camera.fov=BF+(fv-.66)*110;wCam.fov=wfovFor(a);camera.aspect=wCam.aspect=a;camera.updateProjectionMatrix();wCam.updateProjectionMatrix()}
 addEventListener('resize',resize);addEventListener('orientationchange',()=>{setTimeout(resize,120);setTimeout(resize,500)});if(window.visualViewport)visualViewport.addEventListener('resize',resize);
-function goFS(){try{const d=document.documentElement;if(window.Capacitor||document.fullscreenElement||!d.requestFullscreen||!matchMedia('(pointer:coarse)').matches||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches)return;const p=d.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+function goFS(){try{const d=document.documentElement;if(APK||document.fullscreenElement||!d.requestFullscreen||!matchMedia('(pointer:coarse)').matches||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches)return;const p=d.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{})}catch(e){}}
 
 /* niveles */
 function newGame(){lvl=0;hp=HM();ar=CH[cs].ar;ammo=30;own=[1,0,0,0,0,0,0,0];wi=0}
@@ -4519,7 +4522,7 @@ function icon(e,ph,b){const pt=e.pn=((e.pn|0)+1)%4;S(pt==1?'roar':'fb',e.x,e.y);
 function hurt(n){if(dashT>0)return;n*=DF[ST.df].dm;const a=Math.min(ar,n*.5);ar-=a;hp-=n-a;dmg=1;shake=Math.max(shake,.5);S('hurt');if(hp<=0){hp=0;end('dead')}}
 function end(s){state=s;firing=false;const last=lvl==LV.length-1;S(s=='dead'?'lose':'win');
  setTimeout(()=>show(s=='dead'?'HAS MUERTO':last?'¡GANASTE!':'¡NIVEL '+(lvl+1)+' COMPLETO!',s=='dead'?'Los demonios ganaron esta vez.':last?'Derrotaste al Icono del Pecado. ¡Has salvado la Tierra!':'Siguiente: nivel '+(lvl+2)+' de '+LV.length+'.',s=='dead'?'REINTENTAR':last?'JUGAR DE NUEVO':'SIGUIENTE NIVEL'),s=='dead'?900:700)}
-function show(t,p,b){$('cw').style.display=state=='title'||(state=='win'&&lvl==LV.length-1)?'block':'none';$('mt').textContent=t;$('mp').textContent=p;$('mb').textContent=b;$('msg').style.display='flex'}
+function show(t,p,b){diag();$('cw').style.display=state=='title'||(state=='win'&&lvl==LV.length-1)?'block':'none';$('mt').textContent=t;$('mp').textContent=p;$('mb').textContent=b;$('msg').style.display='flex'}
 $('mb').onclick=()=>{goFS();$('msg').style.display='none';$('set').style.display='none';if(state=='pause'){state='play';return}
  if(state=='title')newGame();else if(state=='win'){if(lvl<LV.length-1){lvl++;hp=Math.min(HM(),hp+30)}else newGame()}
  else if(state=='dead'){hp=HM();ar=CH[cs].ar;own=sOwn.slice();ammo=Math.max(sAmmo,30);wi=0}
