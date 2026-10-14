@@ -114,6 +114,19 @@ jobs:
           grep -q windowLayoutInDisplayCutoutMode "$S"
           echo "--- styles.xml"; cat "$S"
           echo "--- OK: parche de pantalla completa aplicado"
+      - name: Icono de la app (Mini Doom)
+        run: |
+          test -d android-icons/res
+          cp -r android-icons/res/. android/app/src/main/res/
+          echo "--- icono adaptable y color de fondo"
+          cat android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          cat android/app/src/main/res/values/ic_launcher_background.xml
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            for f in ic_launcher ic_launcher_round ic_launcher_foreground; do
+              cmp -s android-icons/res/mipmap-$d/$f.png android/app/src/main/res/mipmap-$d/$f.png || { echo "Falta $d/$f.png"; exit 1; }
+            done
+          done
+          echo "--- OK: icono nuevo aplicado"
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
